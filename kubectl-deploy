@@ -1,0 +1,44 @@
+#!/bin/bash
+
+bin="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# input parameters
+if [[ $# -lt 2 ]]; then
+	echo "missing directory and/or config"
+	echo "example: kubectl deploy examples/ examples/test.config.yaml"
+	exit 1
+fi
+directory=$1
+config=$2
+
+# install render if not exist
+if ! type render; then
+    echo 'render is not installed'
+    render_version="v0.0.8"
+    echo "Downloading 'render (${render_version})'"
+    curl -#L \
+      --url "https://github.com/VirtusLab/render/releases/download/${render_version}/render-linux-amd64" \
+      --output "${bin}/render"
+    chmod +x "${bin}/render"
+    echo
+fi
+
+# render manifests
+templates=`ls ${directory}/*.tmpl`
+for template in ${templates}
+do
+   directory_name=`dirname ${template}`
+   output=`basename ${template} .tmpl`
+   echo "rendering ${template} to ${output}"
+   render --in ${template} --out "${directory_name}/rendered/${output}" --config ${config}
+done
+
+# apply manifests
+manifests=`ls ${directory}/rendered/*.yaml | grep -v ${config}`
+for manifest in ${manifests}
+do
+   echo "applying ${manifest}"
+   kubectl --context eu-west-1c-nonprod apply -f ${manifest}
+done
+
+
