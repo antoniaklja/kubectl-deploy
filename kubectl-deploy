@@ -38,7 +38,7 @@ manifests=`ls ${directory}/rendered/*.yaml | grep -v ${config}`
 for manifest in ${manifests}
 do
    echo "applying ${manifest}"
-   kubectl --context eu-west-1c-nonprod apply -f ${manifest}
+   kubectl apply -f ${manifest}
 done
 
 
