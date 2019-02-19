@@ -1,11 +1,11 @@
 #!/bin/bash
 
-bin="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+# kubectl-deploy it's a simple kubectl plugin which renders Kubernetes manifest templates and applies them.
 
 # input parameters
 if [[ $# -lt 2 ]]; then
 	echo "missing directory and/or config"
-	echo "example: kubectl deploy examples/ examples/test.config.yaml"
+	echo "example usage: kubectl deploy examples/ examples/test.config.yaml"
 	exit 1
 fi
 directory=$1
@@ -14,6 +14,7 @@ config=$2
 # install render if not exist
 if ! type render; then
     echo 'render is not installed'
+    bin="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
     render_version="v0.0.8"
     echo "Downloading 'render (${render_version})'"
     curl -#L \
@@ -29,7 +30,8 @@ for template in ${templates}
 do
    directory_name=`dirname ${template}`
    output=`basename ${template} .tmpl`
-   echo "rendering ${template} to ${output}"
+   echo "rendering '${template}' to '${directory_name}/rendered/${output}'"
+   mkdir -p "${directory_name}/rendered"
    render --in ${template} --out "${directory_name}/rendered/${output}" --config ${config}
 done
 
@@ -37,8 +39,8 @@ done
 manifests=`ls ${directory}/rendered/*.yaml | grep -v ${config}`
 for manifest in ${manifests}
 do
-   echo "applying ${manifest}"
-   kubectl apply -f ${manifest}
+   echo "applying '${manifest}'"
+   kubectl --context eu-west-1c-nonprod apply -f ${manifest}
 done
 
 
