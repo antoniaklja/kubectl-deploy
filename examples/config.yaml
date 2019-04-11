@@ -1,3 +1,0 @@
-namespace: example
-image: nginx:1.8
-replicas: 3

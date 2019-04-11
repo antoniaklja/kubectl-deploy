@@ -4,6 +4,7 @@
 *.dll
 *.so
 *.dylib
+kube-deploy
 
 # Test binary, build with `go test -c`
 *.test
